@@ -2,3 +2,4 @@
 venv
 XGBoost_App
 __pycache__
+.DS_Store
