@@ -27,5 +27,28 @@ A powerful web-based application built with **Streamlit**, combining **real-time
 
 ---
 
-## 🧱 Folder Structure
+## 🧪 How it Works
+
+- **Data Fetching**: Uses `yfinance` to get historical stock data.
+- **Feature Engineering**: Creates features like moving averages, RSI, lags, rolling std, etc.
+- **Model**: XGBoost regression is trained on engineered features.
+- **Prediction**: Model is used to predict the next 30 days.
+- **Visualization**: Uses `matplotlib`, `seaborn`, and `plotly` for detailed charts.
+
+---
+
+## To-Do (Future Enhancements)
+
+Add LSTM/GRU models for better forecasting
+Add technical indicators as toggle options
+Allow download of predictions as CSV
+Multi-stock comparison
+Deploy on Streamlit Cloud
+
+---
+
+# 🤝 Contributions
+Contributions, issues, and feature requests are welcome! Feel free to open an issue or submit a pull request.
+
+
 
