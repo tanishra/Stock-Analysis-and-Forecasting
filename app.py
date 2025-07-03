@@ -1,5 +1,3 @@
-# main.py
-
 import streamlit as st
 import pandas as pd
 import yfinance as yf
@@ -7,15 +5,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.graph_objects as go
 
-from XGBoost_App.data_utils import fetch_stock_data
-from XGBoost_App.feature_engineering import add_features
-from XGBoost_App.model import train_model
-from XGBoost_App.predict import predict_next_n_days
+from utils.data_loader import load_stock_data
+from utils.model import train_arima_and_forecast
+from utils.plots import plot_line_chart, plot_bar_chart
+from utils.downloader import get_forecast_csv
 
 st.set_page_config(page_title="📊 Stock Dashboard", layout="wide")
-
-# Create two tabs
-tab1, tab2 = st.tabs(["📊 Stock Analysis", "📈 Stock Prediction"])
+tab1, tab2 = st.tabs(["📊 Stock Analysis", "📈 Stock Forecast"])
 
 # ----------------------------- TAB 1: Stock Analysis -----------------------------
 with tab1:
@@ -35,8 +31,8 @@ with tab1:
 
         st.subheader(f"About {info.get('shortName', ticker)}")
         st.markdown(f"**Description:** {info.get('longBusinessSummary', 'No description available.')}")
-        st.markdown(f"**Sector:** {info.get('sector', 'N/A')}  ")
-        st.markdown(f"**Employees:** {info.get('fullTimeEmployees', 'N/A')}  ")
+        st.markdown(f"**Sector:** {info.get('sector', 'N/A')}")
+        st.markdown(f"**Employees:** {info.get('fullTimeEmployees', 'N/A')}")
         st.markdown(f"**Website:** [{info.get('website', 'N/A')}]({info.get('website', '')})")
 
         summary_data = {
@@ -80,7 +76,6 @@ with tab1:
             show_macd = st.checkbox("Show MACD")
 
         data_hist = stock.history(period=time_range)
-
         if data_hist.empty:
             st.warning("No data for selected time range.")
         else:
@@ -98,7 +93,6 @@ with tab1:
                     close=data_hist['Close'],
                     name='Candlestick'))
 
-            # RSI
             if show_rsi and len(data_hist) >= 14:
                 delta = data_hist['Close'].diff()
                 gain = delta.where(delta > 0, 0.0)
@@ -109,7 +103,6 @@ with tab1:
                 rsi = 100 - (100 / (1 + rs))
                 fig.add_trace(go.Scatter(x=data_hist.index, y=rsi, mode='lines', name='RSI', yaxis='y2'))
 
-            # MACD
             if show_macd and len(data_hist) >= 26:
                 exp1 = data_hist['Close'].ewm(span=12, adjust=False).mean()
                 exp2 = data_hist['Close'].ewm(span=26, adjust=False).mean()
@@ -127,52 +120,46 @@ with tab1:
                 margin=dict(l=40, r=40, t=40, b=40),
                 height=600
             )
-
             st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"Error fetching data: {e}")
 
-
-# ----------------------------- TAB 2: Stock Prediction -----------------------------
+# ----------------------------- TAB 2: ARIMA Forecast -----------------------------
 with tab2:
-    st.title("🧠 Stock Price Forecasting")
+    st.title("📈 Stock Price Forecasting ")
 
-    ticker = st.text_input("Enter Stock Ticker (e.g., AAPL, TSLA)", "AAPL", key="predict_ticker")
-    start_date = st.date_input("Start Date", pd.to_datetime("2020-01-01"), key="predict_start")
+    ticker = st.text_input("Stock Ticker", value="AAPL", key="predict_ticker").upper()
+    start_date = st.date_input("Start Date", pd.to_datetime("2015-01-01"), key="predict_start")
     end_date = st.date_input("End Date", pd.to_datetime("2024-12-31"), key="predict_end")
+    st.markdown(
+    """
+    > ⚠️ **Disclaimer:** This forecast is for **academic and learning purposes only**. 
+    It is **not intended for financial advice or real-world investment decisions.**
+    """
+)
+    forecast_btn = st.button("📊 Forecast")
 
-    if st.button("🔍 Predict Next 30 Days"):
+    if forecast_btn:
         try:
-            df_raw = fetch_stock_data(ticker, str(start_date), str(end_date))
-            df = add_features(df_raw)
-            model, scaler = train_model(df)
-            preds_df = predict_next_n_days(model, scaler, df, n_days=30)
+            df = load_stock_data(ticker, start_date, end_date)
 
-            st.success("✅ Prediction successful!")
+            if df.empty:
+                st.warning("⚠️ No data found. Please check the ticker or date range.")
+            else:
+                forecast_df = train_arima_and_forecast(df)
 
-            st.subheader("📊 Forecast Chart (Recent History + Next 30 Days)")
-            plot_window = 90
-            recent_history = df[['Date', 'Close']].copy().tail(plot_window)
-            forecast_df = preds_df.copy()
+                st.subheader("📈 Line Chart: Historical + Forecasted")
+                plot_line_chart(df, forecast_df, ticker)
 
-            plot_df = pd.concat([
-                recent_history.rename(columns={"Close": "Price"}).assign(Type="Historical"),
-                forecast_df.rename(columns={"Prediction": "Price"}).assign(Type="Forecast")
-            ])
+                st.subheader("📊 Bar Chart: 30-Day Forecast")
+                plot_bar_chart(forecast_df)
 
-            fig, ax = plt.subplots(figsize=(12, 6))
-            sns.lineplot(data=plot_df, x="Date", y="Price", hue="Type", palette=["blue", "orange"])
-            plt.title(f"{ticker} - Recent Prices & Next 30-Day Forecast")
-            plt.xlabel("Date")
-            plt.ylabel("Price")
-            plt.xticks(rotation=45)
-            plt.grid(True)
-            plt.legend(title="Legend")
-            st.pyplot(fig)
+                st.subheader("📋 Forecast Table (Next 30 Business Days)")
+                st.dataframe(forecast_df.reset_index().rename(columns={"index": "Date"}), use_container_width=True)
 
-            st.subheader("📅 Predicted Prices (Next 30 Days)")
-            st.dataframe(preds_df.set_index("Date").style.format("{:.2f}"))
+                csv = get_forecast_csv(forecast_df)
+                st.download_button("⬇️ Download Forecast CSV", csv, f"{ticker}_forecast.csv", "text/csv")
 
         except Exception as e:
-            st.error(f"❌ Error occurred: {e}")
+            st.error(f"❌ Error: {e}")
