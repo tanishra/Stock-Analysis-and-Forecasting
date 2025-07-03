@@ -19,23 +19,25 @@ A powerful web-based application built with **Streamlit**, combining **real-time
   - RSI (Relative Strength Index)
   - MACD (Moving Average Convergence Divergence)
 
-### 📊 Stock Price Forecasting (XGBoost)
-- Fetch historical data using `yfinance`
-- Feature engineering on stock prices (lags, rolling stats, etc.)
-- Train XGBoost model
-- Predict next **30 days** of stock prices
-- Visualize historical + forecasted prices
-- Display forecast table with formatted results
+### 📊 Stock Price Forecasting (ARIMA)
+- Input stock ticker and date range
+- Automatically fetch historical data using `yfinance`
+- Fit ARIMA model to closing price data
+- Forecast next **30 business days**
+- Dual visualization:
+  - 📈 Matplotlib Line Chart (historical + forecast)
+  - 📊 Bar Chart of forecasted prices
+- Forecast table with date-wise predicted values
+- 📥 Download forecast as CSV
 
 ---
 
 ## 🧪 How it Works
 
-- **Data Fetching**: Uses `yfinance` to get historical stock data.
-- **Feature Engineering**: Creates features like moving averages, RSI, lags, rolling std, etc.
-- **Model**: XGBoost regression is trained on engineered features.
-- **Prediction**: Model is used to predict the next 30 days.
-- **Visualization**: Uses `matplotlib`, `seaborn`, and `plotly` for detailed charts.
+- **Data Fetching**: Uses `yfinance` to download historical stock data based on user input.
+- **Modeling**: Trains a basic ARIMA model using `statsmodels` to capture time-dependent trends.
+- **Forecasting**: Predicts the next 30 business days and visualizes it.
+- **Visualization**: Uses `matplotlib`, `seaborn`, and `plotly` to show insights clearly and interactively.
 
 ---
 
@@ -50,7 +52,10 @@ A powerful web-based application built with **Streamlit**, combining **real-time
 ---
 
 # 🤝 Contributions
-Contributions, issues, and feature requests are welcome! Feel free to open an issue or submit a pull request.
+Contributions, suggestions, and pull requests are welcome!
+
+- If you find a bug or want a feature, please open an issue.
+- Want to add something cool? Fork and submit a pull request.
 
 
 
