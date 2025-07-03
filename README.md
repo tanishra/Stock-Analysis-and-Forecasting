@@ -2,6 +2,8 @@
 
 A powerful web-based application built with **Streamlit**, combining **real-time stock analysis** with **30-day stock price forecasting** using **XGBoost** and advanced feature engineering.
 
+> ⚠️ **Disclaimer**: This application is built for **academic and educational purposes only**. The stock price predictions are not suitable for real-world trading or investment decisions. Use it solely for learning and experimentation.
+
 ---
 
 ## 🚀 Features
@@ -39,11 +41,11 @@ A powerful web-based application built with **Streamlit**, combining **real-time
 
 ## To-Do (Future Enhancements)
 
-Add LSTM/GRU models for better forecasting
-Add technical indicators as toggle options
-Allow download of predictions as CSV
-Multi-stock comparison
-Deploy on Streamlit Cloud
+- Add LSTM/GRU models for better forecasting
+- Add technical indicators as toggle options
+- Allow download of predictions as CSV
+- Multi-stock comparison
+- Deploy on Streamlit Cloud
 
 ---
 
