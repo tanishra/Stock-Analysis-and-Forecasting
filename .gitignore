@@ -1,5 +1,4 @@
 .ipynb_checkpoints
 venv
-XGBoost_App/__pycache__
-XGBoost_App/app.py
-Stock_Prediction.py
+XGBoost_App
+__pycache__
